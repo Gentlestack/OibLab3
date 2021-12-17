@@ -42,7 +42,7 @@ def Generation(settings):
     print("ключ симметричного шифрования зашифрован открытым ключом и сохранен в файл")
     return private_key
 
-def Encryption(settings, iv):
+def Encryption(settings):
     with open(settings['symmetric_key'], 'rb') as symmetric_key:
         encrypted_key = symmetric_key.read()
     with open(settings['secret_key'], 'rb') as pem_in:
@@ -56,33 +56,37 @@ def Encryption(settings, iv):
     print("симметричный ключ расшифрован")
     with open(settings['initial_file'], mode='r', encoding='UTF-8') as text_in:
         text = text_in.read()
-
+    iv = os.urandom(
+        8)  # случайное значение для инициализации блочного режима, должно быть размером с блок и каждый раз новым48
     padder = padding2.ANSIX923(64).padder()
     padded_text = padder.update(bytes(text, 'UTF-8')) + padder.finalize()
     cipher = Cipher(algorithms.CAST5(dc_key), modes.CBC(iv))
     encryptor = cipher.encryptor()
+    with open(settings['initialisation_vector'], 'wb') as txt_in:
+        txt_in.write(iv)
     c_text = encryptor.update(padded_text) + encryptor.finalize()
     with open(settings['encrypted_file'], 'wb') as text_file:
         text_file.write(c_text)
     print("текст зашифрован симметричным алгоритмом и сохранен по указанному пути")
-    return iv
+    return cipher
 
-def Decryption(settings, iv):
+def Decryption(settings):
     with open(settings['symmetric_key'], 'rb') as symmetric_key:
         encrypted_key = symmetric_key.read()
     with open(settings['secret_key'], 'rb') as pem_in:
         private_bytes = pem_in.read()
+    with open(settings['initialisation_vector'], 'rb') as txt_in:
+        iv = txt_in.read()
     d_private_key = load_pem_private_key(private_bytes, password=None, )
-
     dc_key = d_private_key.decrypt(encrypted_key,
                                    padding1.OAEP(mgf=padding1.MGF1(algorithm=hashes.SHA256()),
                                                  algorithm=hashes.SHA256(),
                                                  label=None))
     print("симметричный ключ расшифрован")
-    with open(settings['encrypted_file'], 'rb') as text_in:
-        c_text = text_in.read()
     cipher = Cipher(algorithms.CAST5(dc_key), modes.CBC(iv))
     decryptor = cipher.decryptor()
+    with open(settings['encrypted_file'], 'rb') as text_in:
+        c_text = text_in.read()
     dc_text = decryptor.update(c_text) + decryptor.finalize()
     unpadder = padding2.ANSIX923(64).unpadder()
     unpadded_dc_text = unpadder.update(dc_text) + unpadder.finalize()
@@ -98,6 +102,7 @@ settings = {
     'symmetric_key':'C:\\OibLab3\\symmetric.txt',
     'public_key':'C:\\OibLab3\\public.pem',
     'secret_key':'C:\\OibLab3\\private.pem',
+    'initialisation_vector':'C:\\OibLab3\\iv.txt'
 }
 
 while True:
@@ -125,16 +130,17 @@ group.add_argument('-gen', '--generation', help='Запускает режим �
 group.add_argument('-enc', '--encryption', help='Запускает режим шифрования')
 group.add_argument('-dec', '--decryption', help='Запускает режим дешифрования')
 
-args = parser.parse_args()
-iv = os.urandom(
-        8)  # случайное значение для инициализации блочного режима, должно быть размером с блок и каждый раз новым
-if args.generation is not None:
-  Generation(settings)
-elif args.encryption is not None:
-  Encryption(settings, iv)
-else:
-  Decryption(settings, iv)
+# args = parser.parse_args()
 
+# if args.generation is not None:
+    # Generation(settings)
+# elif args.encryption is not None:
+    # Encryption(settings)
+# else:
+    # Decryption(settings)
+Generation(settings)
+Encryption(settings)
+Decryption(settings)
 # with open(settings['public_key'], 'rb') as public_key:
     # key =
 
