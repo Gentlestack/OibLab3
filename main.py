@@ -130,17 +130,15 @@ group.add_argument('-gen', '--generation', help='Запускает режим �
 group.add_argument('-enc', '--encryption', help='Запускает режим шифрования')
 group.add_argument('-dec', '--decryption', help='Запускает режим дешифрования')
 
-# args = parser.parse_args()
+args = parser.parse_args()
 
-# if args.generation is not None:
-    # Generation(settings)
-# elif args.encryption is not None:
-    # Encryption(settings)
-# else:
-    # Decryption(settings)
-Generation(settings)
-Encryption(settings)
-Decryption(settings)
+if args.generation is not None:
+    Generation(settings)
+elif args.encryption is not None:
+    Encryption(settings)
+else:
+    Decryption(settings)
+
 # with open(settings['public_key'], 'rb') as public_key:
     # key =
 
