@@ -75,8 +75,8 @@ def Decryption(settings):
         encrypted_key = symmetric_key.read()
     with open(settings['secret_key'], 'rb') as pem_in:
         private_bytes = pem_in.read()
-    with open(settings['initialisation_vector'], 'rb') as txt_in:
-        iv = txt_in.read()
+    with open(settings['initialisation_vector'], 'rb') as bin_in:
+        iv = bin_in.read()
     d_private_key = load_pem_private_key(private_bytes, password=None, )
     dc_key = d_private_key.decrypt(encrypted_key,
                                    padding1.OAEP(mgf=padding1.MGF1(algorithm=hashes.SHA256()),
@@ -85,8 +85,8 @@ def Decryption(settings):
     print("симметричный ключ расшифрован")
     cipher = Cipher(algorithms.CAST5(dc_key), modes.CBC(iv))
     decryptor = cipher.decryptor()
-    with open(settings['encrypted_file'], 'rb') as text_in:
-        c_text = text_in.read()
+    with open(settings['encrypted_file'], 'rb') as bin_out:
+        c_text = bin_out.read()
     dc_text = decryptor.update(c_text) + decryptor.finalize()
     unpadder = padding2.ANSIX923(64).unpadder()
     unpadded_dc_text = unpadder.update(dc_text) + unpadder.finalize()
